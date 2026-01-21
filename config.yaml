@@ -1,0 +1,12 @@
+# ModbustoWELD Configuration File
+
+modbus:
+  host: "0.0.0.0"  # Listen on all interfaces
+  port: 5020       # Modbus TCP port
+
+wled:
+  host: "192.168.1.100"  # WLED device IP address
+  port: 80               # WLED HTTP port
+
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
