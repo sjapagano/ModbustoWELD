@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  modbustoweld:
+    build: .
+    container_name: modbustoweld
+    restart: unless-stopped
+    ports:
+      - "5020:5020"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./logs:/app/logs
+    networks:
+      - wled_network
+
+networks:
+  wled_network:
+    driver: bridge

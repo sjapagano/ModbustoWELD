@@ -19,6 +19,8 @@ A Modbus TCP server that acts as a bridge to control WLED devices. This allows i
 
 ## Installation
 
+### Method 1: Direct Python Installation
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/sjapagano/ModbustoWELD.git
@@ -42,6 +44,34 @@ wled:
 
 logging:
   level: "INFO"
+```
+
+### Method 2: Docker
+
+1. Clone the repository:
+```bash
+git clone https://github.com/sjapagano/ModbustoWELD.git
+cd ModbustoWELD
+```
+
+2. Edit `config.yaml` with your WLED device IP
+
+3. Build and run with Docker Compose:
+```bash
+docker-compose up -d
+```
+
+Or build manually:
+```bash
+docker build -t modbustoweld .
+docker run -d -p 5020:5020 -v $(pwd)/config.yaml:/app/config.yaml --name modbustoweld modbustoweld
+```
+
+4. View logs:
+```bash
+docker-compose logs -f
+# or
+docker logs -f modbustoweld
 ```
 
 ## Usage
