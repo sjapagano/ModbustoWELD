@@ -142,7 +142,7 @@ client.write_register(1, 128)
 client.write_registers(2, [255, 0, 0])
 
 # Read current brightness
-result = client.read_input_registers(1, 1)
+result = client.read_input_registers(1, count=1)
 print(f"Current brightness: {result.registers[0]}")
 
 client.close()

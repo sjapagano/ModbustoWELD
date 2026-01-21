@@ -24,7 +24,7 @@ def test_modbus_bridge(host='localhost', port=5020):
     try:
         # Test 1: Read current state
         print("Test 1: Reading current WLED state...")
-        result = client.read_input_registers(0, 5)
+        result = client.read_input_registers(0, count=5)
         if result.isError():
             print(f"  ERROR: {result}")
         else:
@@ -83,7 +83,7 @@ def test_modbus_bridge(host='localhost', port=5020):
         
         # Test 10: Read final state
         print("Test 10: Reading final state...")
-        result = client.read_input_registers(0, 5)
+        result = client.read_input_registers(0, count=5)
         if not result.isError():
             power, brightness, red, green, blue = result.registers
             print(f"  Power: {'ON' if power else 'OFF'}")

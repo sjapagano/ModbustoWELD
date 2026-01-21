@@ -111,7 +111,7 @@ from pymodbus.client import ModbusTcpClient
 client = ModbusTcpClient('localhost', port=5020)
 
 # Read all status registers
-result = client.read_input_registers(0, 5)
+result = client.read_input_registers(0, count=5)
 
 if not result.isError():
     power, brightness, red, green, blue = result.registers
@@ -330,7 +330,7 @@ import time
 def notification_flash(client, color=(255, 0, 0), flashes=3):
     """Flash LEDs for notifications"""
     # Save current state
-    result = client.read_input_registers(0, 5)
+    result = client.read_input_registers(0, count=5)
     if not result.isError():
         saved_state = result.registers
         
