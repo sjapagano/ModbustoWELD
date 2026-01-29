@@ -17,7 +17,8 @@ This implementation allows you to run a complete Modbus TCP to WLED bridge on an
 
 - ✨ Runs standalone on ESP32 (no PC required)
 - 📡 WiFi connectivity
-- 🔌 Modbus TCP slave implementation
+- 🔌 Modbus TCP slave implementation (act as Modbus server)
+- 🔌 **NEW: Modbus TCP client implementation** (connect to other Modbus servers)
 - 🌈 Full WLED control (power, brightness, RGB, effects)
 - 💾 Low memory footprint (~50KB)
 - ⚡ Fast response times (<100ms typical)
@@ -104,6 +105,8 @@ pip install adafruit-ampy
 
 ### Step 4: Upload Files to ESP32
 
+**For Modbus Server (WLED Bridge):**
+
 Using `mpremote`:
 ```bash
 cd esp32
@@ -121,6 +124,20 @@ ampy put config.py
 ampy put wled_client.py
 ampy put modbus_slave.py
 ampy put main.py
+```
+
+**For Modbus Client (Optional):**
+
+If you want to use the ESP32 as a Modbus client to connect to other Modbus servers:
+
+```bash
+# Using mpremote
+mpremote connect /dev/ttyUSB0 cp modbus_client.py :
+mpremote connect /dev/ttyUSB0 cp modbus_client_example.py :
+
+# Or using ampy
+ampy put modbus_client.py
+ampy put modbus_client_example.py
 ```
 
 ### Step 5: Run the Bridge
@@ -228,6 +245,173 @@ Same as the Python version:
 | 2 | Current Red | 0-255 | Current red value |
 | 3 | Current Green | 0-255 | Current green value |
 | 4 | Current Blue | 0-255 | Current blue value |
+
+## Modbus Client Usage
+
+In addition to the Modbus TCP server (slave) functionality, the ESP32 can also act as a Modbus TCP **client** to connect to other Modbus servers.
+
+### Features
+
+- Connect to remote Modbus TCP servers
+- Read holding registers (Function Code 3)
+- Read input registers (Function Code 4)
+- Write single register (Function Code 6)
+- Write multiple registers (Function Code 16)
+- Configurable timeout
+- Error handling and reconnection support
+
+### Installation
+
+Upload the Modbus client module to your ESP32:
+
+```bash
+mpremote connect /dev/ttyUSB0 cp modbus_client.py :
+```
+
+### Basic Usage
+
+```python
+from modbus_client import ModbusTCPClient
+
+# Create client
+client = ModbusTCPClient(host="192.168.1.10", port=502, timeout=5)
+
+# Connect to server
+if client.connect():
+    # Read holding registers
+    values = client.read_holding_registers(address=0, count=5)
+    print(f"Values: {values}")
+    
+    # Write single register
+    client.write_register(address=0, value=100)
+    
+    # Write multiple registers
+    client.write_registers(address=1, values=[50, 150, 200])
+    
+    # Read input registers
+    status = client.read_input_registers(address=0, count=5)
+    print(f"Status: {status}")
+    
+    # Close connection
+    client.close()
+```
+
+### Example: Control WLED via Modbus
+
+```python
+from modbus_client import ModbusTCPClient
+import time
+
+# Connect to ModbustoWELD bridge
+client = ModbusTCPClient(host="192.168.1.20", port=5020)
+
+if client.connect():
+    # Turn on WLED
+    client.write_register(0, 1)
+    time.sleep(1)
+    
+    # Set brightness
+    client.write_register(1, 128)
+    time.sleep(1)
+    
+    # Set color to red
+    client.write_registers(2, [255, 0, 0])
+    time.sleep(2)
+    
+    # Read current state
+    state = client.read_input_registers(0, 5)
+    print(f"Power: {state[0]}, Brightness: {state[1]}")
+    print(f"Color: RGB({state[2]}, {state[3]}, {state[4]})")
+    
+    client.close()
+```
+
+### Full Example Script
+
+A complete example script is provided in `modbus_client_example.py` that demonstrates all client features:
+
+```bash
+# Upload and run the example
+mpremote connect /dev/ttyUSB0 cp modbus_client_example.py :
+mpremote connect /dev/ttyUSB0 run modbus_client_example.py
+```
+
+The example script shows:
+- Connecting to a Modbus server
+- Reading/writing holding registers
+- Reading input registers
+- Error handling
+- Controlling WLED devices via Modbus
+
+### Use Cases
+
+The Modbus client allows your ESP32 to:
+- **Read data from PLCs** - Monitor PLC registers and respond to changes
+- **Control other Modbus devices** - Send commands to industrial equipment
+- **Chain multiple bridges** - ESP32 reads from one Modbus server and controls WLED
+- **Data logging** - Poll Modbus sensors and log data
+- **Automation** - Create complex automation by reading sensors and controlling actuators
+
+### API Reference
+
+#### `ModbusTCPClient(host, port=502, timeout=5)`
+
+Create a new Modbus TCP client.
+
+**Parameters:**
+- `host` - Modbus server IP address or hostname
+- `port` - Modbus server port (default: 502)
+- `timeout` - Socket timeout in seconds (default: 5)
+
+#### `connect()`
+
+Connect to the Modbus server.
+
+**Returns:** `True` on success, `False` on error
+
+#### `close()`
+
+Close the connection to the server.
+
+#### `read_holding_registers(address, count)`
+
+Read holding registers (Function Code 3).
+
+**Parameters:**
+- `address` - Starting register address
+- `count` - Number of registers to read
+
+**Returns:** List of register values or `None` on error
+
+#### `read_input_registers(address, count)`
+
+Read input registers (Function Code 4).
+
+**Parameters:**
+- `address` - Starting register address
+- `count` - Number of registers to read
+
+**Returns:** List of register values or `None` on error
+
+#### `write_register(address, value)`
+
+Write a single register (Function Code 6).
+
+**Parameters:**
+- `address` - Register address
+- `value` - Value to write (0-65535)
+
+**Returns:** `True` on success, `False` on error
+
+#### `write_registers(address, values)`
+
+Write multiple registers (Function Code 16).
+
+**Parameters:**
+- `address` - Starting register address
+- `values` - List of values to write
+
+**Returns:** `True` on success, `False` on error
 
 ## LED Status Indicator
 
@@ -351,6 +535,20 @@ To update the bridge software:
 | Performance | Good | Excellent |
 | Features | Basic | Full |
 | Setup Complexity | Medium | Low |
+
+## Modbus Client vs Server
+
+The ESP32 implementation includes both Modbus client and server functionality:
+
+| Component | Role | Use Case |
+|-----------|------|----------|
+| **Modbus Server (Slave)** | Receives commands from other Modbus clients | Control WLED from PLC/SCADA systems |
+| **Modbus Client (Master)** | Sends commands to other Modbus servers | Read PLC data, control other Modbus devices |
+
+**Example scenarios:**
+- **Server only**: PLC → ESP32 → WLED (ESP32 receives commands)
+- **Client only**: ESP32 → PLC/Device (ESP32 sends commands)
+- **Both**: ESP32 reads from PLC and controls WLED based on data
 
 ## Use Cases
 
