@@ -1,0 +1,13 @@
+# ModbustoWELD Test Configuration File
+# Uses localhost for mock WLED server testing
+
+modbus:
+  host: "0.0.0.0"  # Listen on all interfaces
+  port: 5020       # Modbus TCP port
+
+wled:
+  host: "127.0.0.1"  # Mock WLED server on localhost
+  port: 8080         # Mock server port
+
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
