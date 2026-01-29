@@ -2,6 +2,13 @@
 
 Run the ModbustoWELD bridge directly on an ESP32 microcontroller with WiFi connectivity.
 
+## Quick Links
+
+- 🚀 **[Quick Start Guide](QUICKSTART.md)** - Get running in 15 minutes!
+- 🔧 **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
+- 📝 **Full README** - You're reading it
+- 🧪 **[test_esp32.py](test_esp32.py)** - Test script for your ESP32
+
 ## Overview
 
 This implementation allows you to run a complete Modbus TCP to WLED bridge on an ESP32 microcontroller, eliminating the need for a separate computer. The ESP32 connects to your WiFi network and acts as a Modbus TCP slave, controlling WLED devices via HTTP.
