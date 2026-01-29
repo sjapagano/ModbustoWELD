@@ -1,0 +1,5 @@
+# boot.py - Auto-start script for ESP32
+# This file runs automatically when ESP32 boots
+# Uncomment the line below to enable auto-start of the bridge
+
+# import main

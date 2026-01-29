@@ -10,12 +10,40 @@ A Modbus TCP server that acts as a bridge to control WLED devices. This allows i
 - 📊 Read current WLED state via input registers
 - ⚙️ Configurable via YAML or command-line arguments
 - 📝 Comprehensive logging
+- 🎯 **NEW: ESP32 microcontroller support** - Run standalone without a PC!
+
+## Deployment Options
+
+Choose the option that best fits your needs:
+
+### Option 1: Python on PC/Server
+**Best for**: Full features, development, high-performance applications
+- Requires: Python 3.7+, PC or server
+- See installation instructions below
+
+### Option 2: Docker
+**Best for**: Easy deployment, cloud servers, containerized environments
+- Requires: Docker, PC or server
+- See Docker installation below
+
+### Option 3: ESP32 Microcontroller ⭐ NEW
+**Best for**: Standalone operation, low power, embedded applications
+- Requires: ESP32 board ($5-10), MicroPython
+- See [ESP32 README](esp32/README.md) for detailed instructions
+- **Perfect for industrial installations where a PC is impractical!**
 
 ## Requirements
 
+### Python Version
 - Python 3.7+
 - WLED device on the network
 - Network connectivity between the Modbus client and this bridge
+
+### ESP32 Version
+- ESP32 development board (any variant with WiFi)
+- MicroPython firmware v1.19.1+
+- WLED device on the network
+- WiFi network (2.4 GHz)
 
 ## Installation
 
@@ -72,6 +100,17 @@ docker run -d -p 5020:5020 -v $(pwd)/config.yaml:/app/config.yaml --name modbust
 docker-compose logs -f
 # or
 docker logs -f modbustoweld
+```
+
+### Method 3: ESP32 Microcontroller
+
+For standalone operation without a PC, see the [ESP32 README](esp32/README.md).
+
+Quick start:
+```bash
+cd esp32
+# Edit config.py with your settings
+./install.sh
 ```
 
 ## Usage
@@ -171,6 +210,19 @@ The bridge:
 3. Translates Modbus register operations to WLED HTTP API calls
 4. Periodically polls WLED device for current state
 5. Updates input registers with current WLED state
+
+## Deployment Comparison
+
+| Feature | Python/PC | Docker | ESP32 |
+|---------|-----------|--------|-------|
+| **Hardware** | PC/Server | PC/Server | ESP32 ($5-10) |
+| **Power Usage** | 10-100W | 10-100W | <1W |
+| **Setup Time** | 5 min | 5 min | 15 min |
+| **Always-On Cost** | High | High | Very Low |
+| **Portability** | Low | Low | High |
+| **Reliability** | Medium | High | Very High |
+| **Features** | Full | Full | Basic |
+| **Best For** | Development | Production | Embedded |
 
 ## Troubleshooting
 
