@@ -60,7 +60,7 @@ class ModbusTCPClient:
         if self.socket:
             try:
                 self.socket.close()
-            except:
+            except (OSError, Exception):
                 pass
             self.socket = None
             print("[Modbus Client] Connection closed")
@@ -128,11 +128,19 @@ class ModbusTCPClient:
                     break
                 response_data += chunk
             
+            # Check we have at least the function code byte
+            if len(response_data) < 1:
+                print("[Modbus Client] Empty response received")
+                return None
+            
             # Check function code
             response_fc = response_data[0]
             
             # Check for Modbus exception
             if response_fc & 0x80:
+                if len(response_data) < 2:
+                    print("[Modbus Client] Invalid exception response")
+                    return None
                 exception_code = response_data[1]
                 print(f"[Modbus Client] Exception: code {exception_code}")
                 return None
@@ -153,12 +161,23 @@ class ModbusTCPClient:
         Read holding registers (Function Code 3)
         
         Args:
-            address: Starting register address
-            count: Number of registers to read
+            address: Starting register address (0-65535)
+            count: Number of registers to read (1-125)
             
         Returns:
             List of register values or None on error
         """
+        # Validate parameters
+        if not (0 <= address <= 65535):
+            print(f"[Modbus Client] Invalid address: {address}")
+            return None
+        if not (1 <= count <= 125):
+            print(f"[Modbus Client] Invalid count: {count} (must be 1-125)")
+            return None
+        if address + count > 65536:
+            print(f"[Modbus Client] Address range overflow")
+            return None
+        
         # Build request data
         data = struct.pack('>HH', address, count)
         
@@ -187,12 +206,23 @@ class ModbusTCPClient:
         Read input registers (Function Code 4)
         
         Args:
-            address: Starting register address
-            count: Number of registers to read
+            address: Starting register address (0-65535)
+            count: Number of registers to read (1-125)
             
         Returns:
             List of register values or None on error
         """
+        # Validate parameters
+        if not (0 <= address <= 65535):
+            print(f"[Modbus Client] Invalid address: {address}")
+            return None
+        if not (1 <= count <= 125):
+            print(f"[Modbus Client] Invalid count: {count} (must be 1-125)")
+            return None
+        if address + count > 65536:
+            print(f"[Modbus Client] Address range overflow")
+            return None
+        
         # Build request data
         data = struct.pack('>HH', address, count)
         
@@ -221,12 +251,20 @@ class ModbusTCPClient:
         Write single register (Function Code 6)
         
         Args:
-            address: Register address
+            address: Register address (0-65535)
             value: Value to write (0-65535)
             
         Returns:
             True on success, False on error
         """
+        # Validate parameters
+        if not (0 <= address <= 65535):
+            print(f"[Modbus Client] Invalid address: {address}")
+            return False
+        if not (0 <= value <= 65535):
+            print(f"[Modbus Client] Invalid value: {value}")
+            return False
+        
         # Build request data
         data = struct.pack('>HH', address, value)
         
@@ -250,12 +288,30 @@ class ModbusTCPClient:
         Write multiple registers (Function Code 16)
         
         Args:
-            address: Starting register address
-            values: List of values to write
+            address: Starting register address (0-65535)
+            values: List of values to write (1-123 values, each 0-65535)
             
         Returns:
             True on success, False on error
         """
+        # Validate parameters
+        if not (0 <= address <= 65535):
+            print(f"[Modbus Client] Invalid address: {address}")
+            return False
+        if not values or len(values) == 0:
+            print(f"[Modbus Client] No values provided")
+            return False
+        if len(values) > 123:
+            print(f"[Modbus Client] Too many values: {len(values)} (max 123)")
+            return False
+        if address + len(values) > 65536:
+            print(f"[Modbus Client] Address range overflow")
+            return False
+        for val in values:
+            if not (0 <= val <= 65535):
+                print(f"[Modbus Client] Invalid value: {val}")
+                return False
+        
         count = len(values)
         byte_count = count * 2
         
