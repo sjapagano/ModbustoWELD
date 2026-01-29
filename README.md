@@ -2,6 +2,13 @@
 
 A Modbus TCP server that acts as a bridge to control WLED devices. This allows industrial automation systems, PLCs, and SCADA systems to control WLED LED strips via standard Modbus TCP protocol.
 
+## Quick Links
+
+- 📘 **[Hardware Compatibility Guide](COMPATIBILITY.md)** - Verify your LED controller (GL-C-618WL, etc.)
+- 🚀 **[Quick Start](esp32/QUICKSTART.md)** - Get running in 15 minutes
+- 📝 **[Examples](EXAMPLES.md)** - Code samples and usage
+- 🔧 **[Troubleshooting](esp32/TROUBLESHOOTING.md)** - Common issues
+
 ## Features
 
 - ✨ Control WLED devices via Modbus TCP
@@ -231,6 +238,14 @@ The bridge:
 - Verify WLED device IP address is correct
 - Ensure WLED device is on the same network
 - Test WLED API manually: `curl http://<wled-ip>/json/state`
+- **Check hardware compatibility**: See [COMPATIBILITY.md](COMPATIBILITY.md) for device verification
+
+### Hardware Compatibility Questions
+
+**Unsure if your LED controller is compatible?**
+- See [Hardware Compatibility Guide](COMPATIBILITY.md)
+- Use the verification script: `python verify_gl_controller.py <controller-ip>`
+- Specifically for GL-C-618WL and similar controllers
 
 ### Modbus client cannot connect
 
@@ -243,6 +258,13 @@ The bridge:
 - Check the logs for errors: `tail -f modbustoweld.log`
 - Verify WLED device is responding
 - Increase log level to DEBUG for more details
+
+## Documentation
+
+- **[COMPATIBILITY.md](COMPATIBILITY.md)** - Hardware compatibility guide for LED controllers
+- **[EXAMPLES.md](EXAMPLES.md)** - Usage examples and code samples
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** - Technical implementation details
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 
 ## Contributing
 
