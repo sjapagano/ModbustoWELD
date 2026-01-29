@@ -123,22 +123,39 @@ from pymodbus.client import ModbusTcpClient
 # Connect to ModbustoWELD bridge
 client = ModbusTcpClient('localhost', port=5020)
 
-# Turn on LEDs via Modbus
-client.write_register(0, 1)
+if not client.connect():
+    print("Error: Cannot connect to ModbustoWELD bridge")
+    exit(1)
 
-# Set brightness
-client.write_register(1, 128)
+try:
+    # Turn on LEDs via Modbus
+    result = client.write_register(0, 1)
+    if result.isError():
+        print("Error turning on LEDs")
+    
+    # Set brightness
+    result = client.write_register(1, 128)
+    if result.isError():
+        print("Error setting brightness")
+    
+    # Set color to blue (RGB)
+    result = client.write_registers(2, [0, 0, 255])
+    if result.isError():
+        print("Error setting color")
+    
+    # Read status
+    status = client.read_input_registers(0, 5)
+    if not status.isError():
+        print(f"Power: {status.registers[0]}")
+        print(f"Brightness: {status.registers[1]}")
+        print(f"Color: RGB({status.registers[2]}, {status.registers[3]}, {status.registers[4]})")
+    else:
+        print("Error reading status")
 
-# Set color to blue (RGB)
-client.write_registers(2, [0, 0, 255])
-
-# Read status
-status = client.read_input_registers(0, 5)
-print(f"Power: {status.registers[0]}")
-print(f"Brightness: {status.registers[1]}")
-print(f"Color: RGB({status.registers[2]}, {status.registers[3]}, {status.registers[4]})")
-
-client.close()
+except Exception as e:
+    print(f"Error: {e}")
+finally:
+    client.close()
 ```
 
 ### Common Issues with GL-C-618WL

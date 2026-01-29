@@ -147,24 +147,32 @@ client = ModbusTcpClient('localhost', port=5020)
 if client.connect():
     print("✓ Connected to ModbustoWELD bridge")
     
-    # Turn on GL-C-618WL via Modbus
-    client.write_register(0, 1)
-    print("✓ Turned on LED")
-    
-    # Set brightness
-    client.write_register(1, 128)
-    print("✓ Set brightness to 128")
-    
-    # Set color to purple
-    client.write_registers(2, [128, 0, 128])
-    print("✓ Set color to purple")
-    
-    # Read status
-    status = client.read_input_registers(0, 5)
-    print(f"✓ Status: Power={status.registers[0]}, Brightness={status.registers[1]}")
-    
-    client.close()
-    print("✓ Test complete!")
+    try:
+        # Turn on GL-C-618WL via Modbus
+        result = client.write_register(0, 1)
+        if not result.isError():
+            print("✓ Turned on LED")
+        
+        # Set brightness
+        result = client.write_register(1, 128)
+        if not result.isError():
+            print("✓ Set brightness to 128")
+        
+        # Set color to purple
+        result = client.write_registers(2, [128, 0, 128])
+        if not result.isError():
+            print("✓ Set color to purple")
+        
+        # Read status
+        status = client.read_input_registers(0, 5)
+        if not status.isError():
+            print(f"✓ Status: Power={status.registers[0]}, Brightness={status.registers[1]}")
+        
+        print("✓ Test complete!")
+    except Exception as e:
+        print(f"✗ Error during test: {e}")
+    finally:
+        client.close()
 else:
     print("✗ Cannot connect to ModbustoWELD bridge")
 ```

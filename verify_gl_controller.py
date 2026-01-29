@@ -78,14 +78,20 @@ class GLControllerVerifier:
                 
                 # Check version compatibility
                 version = self.results['version']
-                if version and version.startswith('0.'):
-                    version_parts = version.split('.')
-                    if len(version_parts) >= 2:
-                        major, minor = int(version_parts[0]), int(version_parts[1])
-                        if major == 0 and minor >= 13:
-                            print(f"  ✓ Version compatible (0.13.0+)")
-                        else:
-                            print(f"  ⚠ Version may be too old (recommend 0.13.0+)")
+                if version:
+                    try:
+                        # Handle both 0.x.x and 1.x.x versions
+                        version_parts = version.split('.')
+                        if len(version_parts) >= 2:
+                            major = int(version_parts[0].split('-')[0])  # Handle beta versions
+                            minor = int(version_parts[1].split('-')[0])
+                            
+                            if major > 0 or (major == 0 and minor >= 13):
+                                print(f"  ✓ Version compatible (0.13.0+)")
+                            else:
+                                print(f"  ⚠ Version may be too old (recommend 0.13.0+)")
+                    except (ValueError, IndexError) as e:
+                        print(f"  ⚠ Could not parse version number: {version}")
                 
                 return True
             else:
@@ -116,7 +122,7 @@ class GLControllerVerifier:
                 
                 # Get color info if available
                 segments = data.get('seg', [])
-                if segments:
+                if segments and len(segments) > 0 and 'col' in segments[0]:
                     colors = segments[0].get('col', [[]])[0]
                     if len(colors) >= 3:
                         print(f"  ✓ Color (RGB): {colors[0]}, {colors[1]}, {colors[2]}")
@@ -133,14 +139,23 @@ class GLControllerVerifier:
     def test_wled_control(self) -> bool:
         """Test WLED control (write to device)"""
         print("\n[4/5] Testing WLED control...")
-        print("  This will briefly change your LED settings...")
+        print("  ⚠ This will briefly change your LED settings...")
+        print("  Press Enter to continue, or Ctrl+C to skip...")
+        try:
+            input()
+        except KeyboardInterrupt:
+            print("\n  ⊘ Control test skipped by user")
+            return True  # Don't fail verification if user skips
         
         # Save current state
+        original_state = None
         try:
             response = requests.get(f"{self.base_url}/json/state", timeout=5)
-            original_state = response.json() if response.status_code == 200 else None
-        except:
-            original_state = None
+            if response.status_code == 200:
+                original_state = response.json()
+        except Exception as e:
+            print(f"  ⚠ Could not save original state: {e}")
+            print("  ⚠ Device may not return to original state after test")
         
         try:
             # Test turning on
@@ -185,11 +200,16 @@ class GLControllerVerifier:
             # Restore original state
             if original_state:
                 print("  Restoring original state...")
-                requests.post(
-                    f"{self.base_url}/json/state",
-                    json=original_state,
-                    timeout=5
-                )
+                try:
+                    response = requests.post(
+                        f"{self.base_url}/json/state",
+                        json=original_state,
+                        timeout=5
+                    )
+                    if response.status_code != 200:
+                        print(f"  ⚠ Failed to restore original state (status {response.status_code})")
+                except Exception as e:
+                    print(f"  ⚠ Error restoring original state: {e}")
             
             print(f"  ✓ Successfully controlled device via WLED API")
             self.results['control_test'] = True
@@ -324,6 +344,11 @@ def main():
     )
     
     args = parser.parse_args()
+    
+    # Validate port number
+    if not (1 <= args.port <= 65535):
+        print(f"Error: Port must be between 1 and 65535 (got {args.port})")
+        sys.exit(1)
     
     verifier = GLControllerVerifier(args.host, args.port)
     sys.exit(verifier.run_verification())
